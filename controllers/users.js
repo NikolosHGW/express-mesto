@@ -44,7 +44,7 @@ function updateAvatar(req, res) {
   )
     .then((user) => res.send({ data: user }))
     .catch(() => {
-      res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
     });
 }
 
