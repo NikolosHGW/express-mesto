@@ -20,8 +20,38 @@ function createUser(req, res) {
     .catch(() => res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' }));
 }
 
+function updateUser(req, res) {
+  const { name, about } = req.body;
+  const { _id } = req.user;
+  userModel.findByIdAndUpdate(
+    _id,
+    { name, about },
+    { new: true, runValidators: true, upsert: false },
+  )
+    .then((user) => res.send({ data: user }))
+    .catch(() => {
+      res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+    });
+}
+
+function updateAvatar(req, res) {
+  const { avatar } = req.body;
+  const { _id } = req.user;
+  userModel.findByIdAndUpdate(
+    _id,
+    { avatar },
+    { new: true, runValidators: true, upsert: false },
+  )
+    .then((user) => res.send({ data: user }))
+    .catch(() => {
+      res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+    });
+}
+
 module.exports = {
   getUsers,
   getUsersById,
   createUser,
+  updateUser,
+  updateAvatar,
 };
