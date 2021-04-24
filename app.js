@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const userRout = require('./routes/users');
+const cardRout = require('./routes/cards');
 
 const { PORT = 3000 } = process.env;
 
@@ -12,7 +13,15 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
+app.use((req, _, next) => {
+  req.user = {
+    _id: '60841826608bf017d064edab',
+  };
+
+  next();
+});
 app.use(userRout);
+app.use(cardRout);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
