@@ -23,6 +23,4 @@ app.use((req, _, next) => {
 app.use(userRout);
 app.use(cardRout);
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
-});
+app.listen(PORT);
