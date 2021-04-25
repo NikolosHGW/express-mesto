@@ -17,8 +17,17 @@ function createCard(req, res) {
 function deleteCard(req, res) {
   const { cardId } = req.params;
   cardModel.findById(cardId)
+    .orFail(new Error('Not found'))
     .then(() => res.send({ message: 'Пост удалён' }))
-    .catch(() => res.status(404).send({ message: 'Карточка с указанным _id не найдена' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 function putLike(req, res) {
@@ -29,8 +38,17 @@ function putLike(req, res) {
     { $addToSet: { likes: _id } },
     { new: true },
   )
+    .orFail(new Error('Not found'))
     .then((card) => res.send(card))
-    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 function deleteLike(req, res) {
@@ -41,8 +59,17 @@ function deleteLike(req, res) {
     { $pull: { likes: _id } },
     { new: true },
   )
+    .orFail(new Error('Not found'))
     .then((card) => res.send(card))
-    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные для снятии лайка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 module.exports = {
