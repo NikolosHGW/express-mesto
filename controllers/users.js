@@ -9,8 +9,17 @@ function getUsers(_, res) {
 function getUsersById(req, res) {
   const { userId } = req.params;
   userModel.findById(userId)
+    .orFail(new Error('Not found'))
     .then((user) => res.send(user))
-    .catch(() => res.status(404).send({ message: 'Пользователь по указанному _id не найден' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка' });
+      }
+    });
 }
 
 function createUser(req, res) {
@@ -28,9 +37,16 @@ function updateUser(req, res) {
     { name, about },
     { new: true, runValidators: true, upsert: false },
   )
+    .orFail(new Error('Not Found'))
     .then((user) => res.send(user))
-    .catch(() => {
-      res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка' });
+      }
     });
 }
 
@@ -42,9 +58,16 @@ function updateAvatar(req, res) {
     { avatar },
     { new: true, runValidators: true, upsert: false },
   )
+    .orFail(new Error('Not Found'))
     .then((user) => res.send(user))
-    .catch(() => {
-      res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Передан невалидный id' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Ошибка' });
+      }
     });
 }
 
