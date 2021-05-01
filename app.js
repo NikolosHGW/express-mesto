@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const userRout = require('./routes/users');
 const cardRout = require('./routes/cards');
+const { login, createUser } = require('./controllers/users');
 
 const { PORT = 3000 } = process.env;
 
@@ -22,6 +23,8 @@ app.use((req, _, next) => {
 
   next();
 });
+app.post('/signin', express.json(), login);
+app.post('/signup', express.json(), createUser);
 app.use(userRout);
 app.use(cardRout);
 
