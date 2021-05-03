@@ -16,14 +16,23 @@ function createCard(req, res) {
 
 function deleteCard(req, res) {
   const { cardId } = req.params;
+  const { _id } = req.user;
   cardModel.findById(cardId)
-    .orFail(new Error('Not found'))
-    .then(() => res.send({ message: 'Пост удалён' }))
+    .then((card) => {
+      if (card.owner.toString() !== _id) {
+        throw new Error('Нельзя удалить чужую карточку');
+      }
+      return cardModel.findByIdAndRemove(cardId)
+        .orFail(new Error('Not found'))
+        .then(() => res.send({ message: 'Пост удалён' }));
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Передан невалидный id' });
       } else if (err.message === 'Not found') {
         res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else if (err.message === 'Нельзя удалить чужую карточку') {
+        res.status(403).send({ message: err.message });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
