@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
+const { celebrate, Joi, errors } = require('celebrate');
 const userRout = require('./routes/users');
 const cardRout = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
@@ -16,14 +17,29 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(helmet());
-app.post('/signin', express.json(), login);
-app.post('/signup', express.json(), createUser);
+app.post('/signin', express.json(), celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+}), login);
+app.post('/signup', express.json(), celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string(),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+}), createUser);
 app.use(userRout);
 app.use(cardRout);
 
 app.use((_, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
 });
+
+app.use(errors());
 
 app.use((err, _req, res, next) => {
   const {

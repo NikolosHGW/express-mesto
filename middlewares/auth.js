@@ -1,14 +1,11 @@
 const jwt = require('jsonwebtoken');
+const HandError = require('../errors/HandError');
 
-const handleAuthError = (res) => res
-  .status(401)
-  .send({ message: 'Необходима авторизация' });
-
-module.exports = (req, res, next) => {
+module.exports = (req, _res, next) => {
   try {
     req.user = jwt.verify(req.cookies.jwt, 'some-secret-key');
     next();
   } catch (err) {
-    handleAuthError(res);
+    next(new HandError('Необходима авторизация', 401));
   }
 };
