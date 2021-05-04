@@ -1,46 +1,35 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const HandError = require('../errors/HandError');
 const userModel = require('../models/user');
 
-function getUsers(_, res) {
+function getIdError() {
+  return new HandError('Пользователь по указанному _id не найден', 404);
+}
+
+function getUsers(_, res, next) {
   userModel.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 }
 
-function getCurrentUser(req, res) {
+function getCurrentUser(req, res, next) {
   const { _id } = req.user;
   userModel.findById(_id)
-    .orFail(new Error('Not found'))
+    .orFail(getIdError())
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function getUsersById(req, res) {
+function getUsersById(req, res, next) {
   const { userId } = req.params;
   userModel.findById(userId)
-    .orFail(new Error('Not found'))
+    .orFail(getIdError())
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id getUsersById' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function createUser(req, res) {
+function createUser(req, res, next) {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -49,12 +38,10 @@ function createUser(req, res) {
       name, about, avatar, email, password: hash,
     }))
     .then((user) => res.send(user))
-    .catch(() => res.status(400).send({
-      message: 'Переданы некорректные данные при создании пользователя',
-    }));
+    .catch(next);
 }
 
-function updateUser(req, res) {
+function updateUser(req, res, next) {
   const { name, about } = req.body;
   const { _id } = req.user;
   userModel.findByIdAndUpdate(
@@ -62,20 +49,12 @@ function updateUser(req, res) {
     { name, about },
     { new: true, runValidators: true, upsert: false },
   )
-    .orFail(new Error('Not Found'))
+    .orFail(getIdError())
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function updateAvatar(req, res) {
+function updateAvatar(req, res, next) {
   const { avatar } = req.body;
   const { _id } = req.user;
   userModel.findByIdAndUpdate(
@@ -83,20 +62,12 @@ function updateAvatar(req, res) {
     { avatar },
     { new: true, runValidators: true, upsert: false },
   )
-    .orFail(new Error('Not Found'))
+    .orFail(getIdError())
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(500).send({ message: 'Ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function login(req, res) {
+function login(req, res, next) {
   const { email, password } = req.body;
 
   userModel.findUserByCredentials(email, password)
@@ -113,9 +84,7 @@ function login(req, res) {
         sameSite: true,
       }).end();
     })
-    .catch((err) => res
-      .status(401)
-      .send({ message: err.message }));
+    .catch(next);
 }
 
 module.exports = {

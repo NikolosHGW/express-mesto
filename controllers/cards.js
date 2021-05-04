@@ -1,45 +1,36 @@
+const HandError = require('../errors/HandError');
 const cardModel = require('../models/card');
 
-function getCards(_, res) {
+function getCards(_, res, next) {
   cardModel.find({})
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 }
 
-function createCard(req, res) {
+function createCard(req, res, next) {
   const { name, link } = req.body;
   const { _id: owner } = req.user;
   cardModel.create({ name, link, owner })
     .then((card) => res.send(card))
-    .catch(() => res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' }));
+    .catch(() => next(new HandError('Переданы некорректные данные при создании карточки', 400)));
 }
 
-function deleteCard(req, res) {
+function deleteCard(req, res, next) {
   const { cardId } = req.params;
   const { _id } = req.user;
   cardModel.findById(cardId)
     .then((card) => {
       if (card.owner.toString() !== _id) {
-        throw new Error('Нельзя удалить чужую карточку');
+        throw new HandError('Нельзя удалить чужую карточку', 403);
       }
       return cardModel.findByIdAndRemove(cardId)
-        .orFail(new Error('Not found'))
+        .orFail(new HandError('Карточка с указанным _id не найдена', 404))
         .then(() => res.send({ message: 'Пост удалён' }));
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
-      } else if (err.message === 'Нельзя удалить чужую карточку') {
-        res.status(403).send({ message: err.message });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function putLike(req, res) {
+function putLike(req, res, next) {
   const { cardId } = req.params;
   const { _id } = req.user;
   cardModel.findByIdAndUpdate(
@@ -47,20 +38,12 @@ function putLike(req, res) {
     { $addToSet: { likes: _id } },
     { new: true },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new HandError('Карточка с указанным _id не найдена', 404))
     .then((card) => res.send(card))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
+    .catch(next);
 }
 
-function deleteLike(req, res) {
+function deleteLike(req, res, next) {
   const { cardId } = req.params;
   const { _id } = req.user;
   cardModel.findByIdAndUpdate(
@@ -68,21 +51,9 @@ function deleteLike(req, res) {
     { $pull: { likes: _id } },
     { new: true },
   )
-    .orFail(new Error('Not found'))
+    .orFail(new HandError('Карточка с указанным _id не найдена', 404))
     .then((card) => res.send(card))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Передан невалидный id' });
-      } else if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      }
-    });
-}
-
-function handleError(_, res) {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+    .catch(next);
 }
 
 module.exports = {
@@ -91,5 +62,4 @@ module.exports = {
   deleteCard,
   putLike,
   deleteLike,
-  handleError,
 };
