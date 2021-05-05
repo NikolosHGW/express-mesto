@@ -5,6 +5,7 @@ const { celebrate, Joi, errors } = require('celebrate');
 const userRout = require('./routes/users');
 const cardRout = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
+const HandError = require('./errors/HandError');
 
 const { PORT = 3000 } = process.env;
 
@@ -35,8 +36,8 @@ app.post('/signup', express.json(), celebrate({
 app.use(userRout);
 app.use(cardRout);
 
-app.use((_, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+app.use(() => {
+  throw HandError('Запрашиваемый ресурс не найден', 404);
 });
 
 app.use(errors());
