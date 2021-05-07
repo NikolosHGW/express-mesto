@@ -12,13 +12,14 @@ function createCard(req, res, next) {
   const { _id: owner } = req.user;
   cardModel.create({ name, link, owner })
     .then((card) => res.send(card))
-    .catch(() => next(new HandError('Переданы некорректные данные при создании карточки', 400)));
+    .catch(next);
 }
 
 function deleteCard(req, res, next) {
   const { cardId } = req.params;
   const { _id } = req.user;
   cardModel.findById(cardId)
+    .orFail(new HandError('Карточка с указанным _id не найдена', 404))
     .then((card) => {
       if (card.owner.toString() !== _id) {
         throw new HandError('Нельзя удалить чужую карточку', 403);

@@ -37,7 +37,7 @@ app.use(userRout);
 app.use(cardRout);
 
 app.use(() => {
-  throw HandError('Запрашиваемый ресурс не найден', 404);
+  throw new HandError('Запрашиваемый ресурс не найден', 404);
 });
 
 app.use(errors());
@@ -47,18 +47,27 @@ app.use((err, _req, res, next) => {
     name, code, statusCode = 500, message,
   } = err;
 
-  if (name === 'CastError') {
-    res.status(400).send({ message: 'Передан невалидный id' });
-  } else if (name === 'MongoError' && code === 11000) {
-    res.status(409).send({ message: 'Такой email уже существует' });
-  } else {
-    res
-      .status(statusCode)
-      .send({
-        message: statusCode === 500
-          ? 'На сервере произошла ошибка'
-          : message,
-      });
+  switch (name) {
+    case 'CastError':
+      res.status(400).send({ message: 'Передан невалидный id' });
+      break;
+    case 'MongoError':
+      if (code === 11000) {
+        res.status(409).send({ message: 'Такой email уже существует' });
+      }
+      break;
+    case 'ValidationError':
+      res.status(400).send({ message });
+      break;
+    default:
+      res
+        .status(statusCode)
+        .send({
+          message: statusCode === 500
+            ? 'На сервере произошла ошибка'
+            : message,
+        });
+      break;
   }
 
   next();
