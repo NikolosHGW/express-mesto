@@ -7,6 +7,7 @@ const userRout = require('./routes/users');
 const cardRout = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const HandError = require('./errors/HandError');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3001 } = process.env;
 
@@ -26,6 +27,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(requestLogger);
 app.post('/signin', express.json(), celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
@@ -47,6 +49,8 @@ app.use(cardRout);
 app.use(() => {
   throw new HandError('Запрашиваемый ресурс не найден', 404);
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
