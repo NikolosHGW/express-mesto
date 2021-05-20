@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const HandError = require('../errors/HandError');
 const userModel = require('../models/user');
 
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 function getIdError() {
   return new HandError('Пользователь по указанному _id не найден', 404);
 }
@@ -75,7 +77,7 @@ function login(req, res, next) {
       const { _id } = user;
       const token = jwt.sign(
         { _id },
-        'some-secret-key',
+        NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key',
         { expiresIn: '7d' },
       );
       res.cookie('jwt', token, {
