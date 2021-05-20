@@ -15,7 +15,7 @@ const { PORT = 3001 } = process.env;
 const app = express();
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: 'https://express.mesto.nomoredomains.club',
   credentials: true,
 };
 
