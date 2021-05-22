@@ -40,7 +40,12 @@ function createUser(req, res, next) {
       name, about, avatar, email, password: hash,
     }))
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new HandError('Такой email уже существует', 409));
+      }
+      next(err);
+    });
 }
 
 function updateUser(req, res, next) {

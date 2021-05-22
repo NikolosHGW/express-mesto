@@ -67,32 +67,15 @@ app.use(errorLogger);
 app.use(errors());
 
 app.use((err, _req, res, next) => {
-  const {
-    name, code, statusCode = 500, message,
-  } = err;
+  const { statusCode = 500, message } = err;
 
-  switch (name) {
-    case 'CastError':
-      res.status(400).send({ message: 'Передан невалидный id' });
-      break;
-    case 'MongoError':
-      if (code === 11000) {
-        res.status(409).send({ message: 'Такой email уже существует' });
-      }
-      break;
-    case 'ValidationError':
-      res.status(400).send({ message });
-      break;
-    default:
-      res
-        .status(statusCode)
-        .send({
-          message: statusCode === 500
-            ? 'На сервере произошла ошибка'
-            : message,
-        });
-      break;
-  }
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 
   next();
 });
