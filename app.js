@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const { celebrate, Joi, errors } = require('celebrate');
+const validator = require('validator');
 const cors = require('cors');
 const userRout = require('./routes/users');
 const cardRout = require('./routes/cards');
@@ -44,7 +45,12 @@ app.post('/signup', express.json(), celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
+    avatar: Joi.string().custom((value, helpers) => {
+      if (validator.isURL(value, { require_protocol: true })) {
+        return value;
+      }
+      return helpers.message('Невалидный url');
+    }),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
