@@ -55,6 +55,17 @@ app.post('/signup', express.json(), celebrate({
     password: Joi.string().required().min(8),
   }),
 }), createUser);
+app.post('/logout', (_, res, next) => {
+  try {
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    }).send({ message: 'Clear Cookie' });
+  } catch (err) {
+    next(err);
+  }
+});
 app.use(userRout);
 app.use(cardRout);
 
